@@ -1,0 +1,42 @@
+name: .NET Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Trigger on version tags like v1.0.0
+
+permissions:
+  contents: write  # Allow write access to repository contents, including releases
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.401
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish -c Release -o ./output
+
+      - name: Zip build output
+        run: Compress-Archive -Path ./output/* -DestinationPath ./output/MemScan.zip
+
+      # Create or Update GitHub Release
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./output/MemScan.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

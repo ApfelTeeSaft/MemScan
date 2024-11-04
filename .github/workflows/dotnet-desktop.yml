@@ -1,0 +1,48 @@
+name: .NET Build on Windows
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest  # Use a Windows runner
+
+    steps:
+      # Checkout the code from your repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Setup .NET Core SDK (change version if needed)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.401
+
+      # Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Build the project
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # (Optional) Run tests, if any
+      # Uncomment below if you have unit tests in the project
+      # - name: Run Tests
+      #   run: dotnet test --no-build --verbosity normal
+
+      # Publish the application (if applicable)
+      - name: Publish
+        run: dotnet publish -c Release -o ./output
+
+      # Upload build artifacts (optional)
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: ./output
